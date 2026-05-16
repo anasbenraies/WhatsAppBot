@@ -1,94 +1,94 @@
-// import { supabaseAdmin } from '@/lib/supabase'
-// const supabase = null ;
-// // ── Fonctions de récupération de données (Server Component) ──────────
-// // En production : récupère phoneNumberId depuis la session auth
-// // Pour le MVP : on passe en query param ou on utilise une valeur fixe
+import { supabaseAdmin } from '@/lib/supabase'
+const supabase = null ;
+// ── Fonctions de récupération de données (Server Component) ──────────
+// En production : récupère phoneNumberId depuis la session auth
+// Pour le MVP : on passe en query param ou on utilise une valeur fixe
 
-// async function getStats(phoneNumberId: string) {
-//   const todayStart = new Date()
-//   todayStart.setHours(0, 0, 0, 0)
+async function getStats(phoneNumberId: string) {
+  const todayStart = new Date()
+  todayStart.setHours(0, 0, 0, 0)
 
-//   const [total, today, orders, pending, handoffs] = await Promise.all([
-//     // Total messages traités par le bot
-//     supabaseAdmin
-//       .from('messages')
-//       .select('*', { count: 'exact', head: true })
-//       .eq('phone_number_id', phoneNumberId),
+  const [total, today, orders, pending, handoffs] = await Promise.all([
+    // Total messages traités par le bot
+    supabaseAdmin
+      .from('messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('phone_number_id', phoneNumberId),
 
-//     // Messages reçus aujourd'hui
-//     supabaseAdmin
-//       .from('messages')
-//       .select('*', { count: 'exact', head: true })
-//       .eq('phone_number_id', phoneNumberId)
-//       .gte('created_at', todayStart.toISOString()),
+    // Messages reçus aujourd'hui
+    supabaseAdmin
+      .from('messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('phone_number_id', phoneNumberId)
+      .gte('created_at', todayStart.toISOString()),
 
-//     // Total commandes
-//     supabaseAdmin
-//       .from('orders')
-//       .select('*', { count: 'exact', head: true })
-//       .eq('phone_number_id', phoneNumberId),
+    // Total commandes
+    supabaseAdmin
+      .from('orders')
+      .select('*', { count: 'exact', head: true })
+      .eq('phone_number_id', phoneNumberId),
 
-//     // Commandes en attente (à traiter)
-//     supabaseAdmin
-//       .from('orders')
-//       .select('*', { count: 'exact', head: true })
-//       .eq('phone_number_id', phoneNumberId)
-//       .eq('status', 'pending'),
+    // Commandes en attente (à traiter)
+    supabaseAdmin
+      .from('orders')
+      .select('*', { count: 'exact', head: true })
+      .eq('phone_number_id', phoneNumberId)
+      .eq('status', 'pending'),
 
-//     // Transferts humains (cas que le bot n'a pas pu gérer)
-//     supabaseAdmin
-//       .from('messages')
-//       .select('*', { count: 'exact', head: true })
-//       .eq('phone_number_id', phoneNumberId)
-//       .eq('handled_by', 'human'),
-//   ])
+    // Transferts humains (cas que le bot n'a pas pu gérer)
+    supabaseAdmin
+      .from('messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('phone_number_id', phoneNumberId)
+      .eq('handled_by', 'human'),
+  ])
 
-//   return {
-//     total: total.count ?? 0,
-//     today: today.count ?? 0,
-//     orders: orders.count ?? 0,
-//     pending: pending.count ?? 0,
-//     handoffs: handoffs.count ?? 0,
-//   }
-// }
+  return {
+    total: total.count ?? 0,
+    today: today.count ?? 0,
+    orders: orders.count ?? 0,
+    pending: pending.count ?? 0,
+    handoffs: handoffs.count ?? 0,
+  }
+}
 
-// async function getRecentOrders(phoneNumberId: string) {
-//   const { data } = await supabaseAdmin
-//     .from('orders')
-//     .select('*')
-//     .eq('phone_number_id', phoneNumberId)
-//     .order('created_at', { ascending: false })
-//     .limit(5)
-//   return data ?? []
-// }
+async function getRecentOrders(phoneNumberId: string) {
+  const { data } = await supabaseAdmin
+    .from('orders')
+    .select('*')
+    .eq('phone_number_id', phoneNumberId)
+    .order('created_at', { ascending: false })
+    .limit(5)
+  return data ?? []
+}
 
-// async function getRecentConversations(phoneNumberId: string) {
-//   // Récupère les conversations uniques récentes (un row par client)
-//   const { data } = await supabaseAdmin
-//     .from('messages')
-//     .select('user_phone, content, direction, created_at')
-//     .eq('phone_number_id', phoneNumberId)
-//     .order('created_at', { ascending: false })
-//     .limit(50) // On filtre côté JS pour avoir les derniers msg par client
+async function getRecentConversations(phoneNumberId: string) {
+  // Récupère les conversations uniques récentes (un row par client)
+  const { data } = await supabaseAdmin
+    .from('messages')
+    .select('user_phone, content, direction, created_at')
+    .eq('phone_number_id', phoneNumberId)
+    .order('created_at', { ascending: false })
+    .limit(50) // On filtre côté JS pour avoir les derniers msg par client
   
-//   if (!data) return []
+  if (!data) return []
 
-//   type MessageRow = {
-//     user_phone: string
-//     content: string
-//     direction: string
-//     created_at: string
-//   }
+  type MessageRow = {
+    user_phone: string
+    content: string
+    direction: string
+    created_at: string
+  }
 
-//   // Déduplique : garde seulement le dernier message par user_phone
-//   const rows = data as MessageRow[]
-//   const seen = new Set<string>()
-//   return rows.filter((msg: MessageRow) => {
-//     if (seen.has(msg.user_phone)) return false
-//     seen.add(msg.user_phone)
-//     return true
-//   }).slice(0, 6)
-// }
+  // Déduplique : garde seulement le dernier message par user_phone
+  const rows = data as MessageRow[]
+  const seen = new Set<string>()
+  return rows.filter((msg: MessageRow) => {
+    if (seen.has(msg.user_phone)) return false
+    seen.add(msg.user_phone)
+    return true
+  }).slice(0, 6)
+}
 
 // ── Composants UI ──────────────────────────────────────────────────
 
@@ -156,11 +156,11 @@ export default async function DashboardPage({
     pending: 0,
     handoffs: 0,
   }, [], []]
-//   await Promise.all([
-//     getStats(phoneNumberId),
-//     getRecentOrders(phoneNumberId),
-//     getRecentConversations(phoneNumberId),
-//   ])
+  await Promise.all([
+    getStats(phoneNumberId),
+    getRecentOrders(phoneNumberId),
+    getRecentConversations(phoneNumberId),
+  ])
 
   const botEfficiency = stats.total > 0
     ? Math.round(((stats.total - stats.handoffs) / stats.total) * 100)

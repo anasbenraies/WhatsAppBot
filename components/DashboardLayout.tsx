@@ -1,15 +1,30 @@
 'use client'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { createBrowserClient } from '@supabase/ssr'
 
 const NAV_ITEMS = [
-  { href: '/dashboard',                 icon: '📊', label: 'Vue d\'ensemble' },
-  { href: '/dashboard/conversations',   icon: '💬', label: 'Conversations' },
-  { href: '/dashboard/catalogue',       icon: '🛍️',  label: 'Catalogue' },
+  { href: '/dashboard',               icon: '📊', label: 'Vue d\'ensemble' },
+  { href: '/dashboard/conversations', icon: '💬', label: 'Conversations' },
+  { href: '/dashboard/catalogue',     icon: '🛍️',  label: 'Catalogue' },
+  { href: '/onboarding',              icon: '🤖', label: 'Activer le bot' },
+  
 ]
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const router = useRouter()
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+
+  async function handleLogout() {
+    await supabase.auth.signOut()
+    router.push('/auth/login')
+    router.refresh() // Force le middleware à re-vérifier la session
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -51,12 +66,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
             <span className="text-xs text-gray-500">Bot actif</span>
           </div>
-          <Link
-            href="/onboarding"
-            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition-colors mt-1"
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors mt-1"
           >
-            <span>⚙️</span> Paramètres
-          </Link>
+            <span>🔌</span> Se déconnecter
+          </button>
         </div>
       </aside>
 

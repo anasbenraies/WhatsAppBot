@@ -1,10 +1,18 @@
 'use client'
 import { useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
+import { createBrowserClient } from '@supabase/ssr'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
-const supabase = createClient(
+// const supabase = createClient(
+//   process.env.NEXT_PUBLIC_SUPABASE_URL!,
+//   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+// )
+
+// Par ça :
+
+const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
@@ -12,7 +20,7 @@ const supabase = createClient(
 export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirect = searchParams.get('redirect') ?? '/dashboard'
+  const redirect = searchParams.get('redirect') ?? '/dashboard' // Redirige vers le dashboard par défaut si aucun paramètre n'est présent
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

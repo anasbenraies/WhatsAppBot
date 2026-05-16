@@ -1402,3 +1402,49 @@ curl -X POST http://localhost:3001/webhook \
            ↓
   Dashboard Next.js (analytics) ✅
 ```
+
+# correction bug whatsapp login
+```
+Erreur 2 : asyncfunction dans FB.login callback
+Le callback de FB.login ne supporte pas async. Corrige launchEmbeddedSignup comme ça :
+tsfunction launchEmbeddedSignup() {
+  if (!shopName.trim()) return
+  setStep('loading')
+
+  FB.login(
+    (response: any) => {                          // ← pas async
+      if (response.authResponse?.code) {
+        // Lance le fetch sans await — gère l'erreur via .catch()
+        fetch('/api/onboarding/exchange-token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: response.authResponse.code }),
+        }).catch(() => {
+          setStep('error')
+          setErrorMsg('Erreur lors de la connexion à Meta')
+        })
+      } else {
+        setStep('intro')
+      }
+    },
+    {
+      config_id: process.env.NEXT_PUBLIC_META_CONFIG_ID,
+      response_type: 'code',
+      override_default_response_type: true,
+      extras: {
+        setup: {},
+        featureName: 'whatsapp_embedded_signup',
+        sessionInfoVersion: '3',
+      },
+    }
+  )
+}
+Résumé : ngrok pour le HTTPS, et callback synchrone avec .catch() au lieu de async/await.
+```
+
+
+1. créer app Meta
+2. ajouter WhatsApp product
+3. Embedded Signup
+4. App Review
+5. Live Mode

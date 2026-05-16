@@ -31,21 +31,22 @@ export async function middleware(request: NextRequest) {
   // Rafraîchir la session si elle existe (renouvelle le JWT automatiquement)
   const { data: { session } } = await supabase.auth.getSession()
 
+  const { data: { user } } = await supabase.auth.getUser()
+  console.log('Middleware - User:', user?.id || 'Aucun utilisateur connecté')
+
   const { pathname } = request.nextUrl
 
   // ── Règles de redirection ─────────────────────────────────
   // Si l'utilisateur tente d'accéder au dashboard sans être connecté
-//   if ((pathname.startsWith('/dashboard') || pathname.startsWith('/onboarding') ) && !session) {
-if ((pathname.startsWith('/test') || pathname.startsWith('/test') ) && !session) {
+  if ((pathname.startsWith('/dashboard') || pathname.startsWith('/onboarding')) && !user) {
   const loginUrl = new URL('/auth/login', request.url)
-    loginUrl.searchParams.set('redirect', pathname) // Pour rediriger après login
-    return NextResponse.redirect(loginUrl)
-  }
-
-  // Si l'utilisateur est déjà connecté et tente d'aller sur login/register
-  if ((pathname.startsWith('/auth/login') || pathname.startsWith('/auth/register')) && session) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
-  }
+  loginUrl.searchParams.set('redirect', pathname)
+  return NextResponse.redirect(loginUrl)
+}
+// Si l'utilisateur est déjà connecté et tente d'aller sur login/register
+if ((pathname.startsWith('/auth/login') || pathname.startsWith('/auth/register')) && user) {
+  return NextResponse.redirect(new URL('/dashboard', request.url))
+}
 
   return response
 }
